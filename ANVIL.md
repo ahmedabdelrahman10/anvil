@@ -54,6 +54,16 @@ nesting, and extracting small single-purpose functions. A genuinely-immutable gl
 
 ## The loop
 
+**Before the loop (optional):** when the system itself is unsettled — a Flink data/analytics platform,
+an event pipeline, a GCP-backed service (Pub/Sub, GCS, BigQuery, Dataflow) — run
+`/anvil:design <problem>` first. It runs a **context-engineering research** subagent (how big companies
+do it + how Flink already does it + a flinkpedia sweep), settles the **requirements with you** (your
+one approval), then invokes the **`architecture` skill** built **only from tools Flink already uses**,
+and puts the result through an **adversarial architecture review** — looping architecture ↔ review
+until the design is good. It produces a reviewed system architecture; `--ship` hands it to the loop
+below. It decides the *what* and the system shape; the `architecture` skill decides the *how-in-Go*
+once specs are frozen. Skip it when the task is already well-scoped.
+
 `/anvil:ship <task>` runs: **understand** (research the real ask — free text, Jira, or GitHub) →
 **specify & approve** → **design** (`anvil:architect` runs the `architecture` skill → `design.md`) →
 **implement** (fill the skeleton tests, TDD) → **gate** → **test** (all kinds real & complete) →

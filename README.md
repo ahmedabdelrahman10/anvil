@@ -19,6 +19,14 @@ that won't let an agent stop while any of it is red.
   the gate, not on a feeling. The **one human approval** is the spec: anvil presents the change as
   a numbered list of one-liner specifications, makes each a failing skeleton test, and asks you to
   approve that list before it writes a line.
+- **`/anvil:design <problem>`** — design a **Flink data/analytics platform** (analytics, big-data,
+  events, GCP — Pub/Sub, GCS, BigQuery, Dataflow), grounded in how big companies solve it **and** how
+  Flink already does it. Four stages, **one human approval**: a **context-engineering research**
+  subagent (`anvil:designer` — big-company patterns + Flink prior art + a flinkpedia sweep) → a
+  **requirements loop** with you that's your only gate → the **`architecture` skill** built from
+  Flink-native tools only (via `anvil:architect` + `go-analytics` + `flink-infra`) → an **adversarial
+  architecture review** (`anvil:arch-reviewer`), looping architecture ↔ review until the design is
+  `GOOD`. Produces a reviewed system architecture, not code. `--ship` hands it to `/anvil:ship`.
 - **`/anvil:review <PR | branch | files | diff>`** — a **standalone** review: the `anvil:reviewer`
   rubric (five axes + the complexity budget + a Go checklist) run on demand against a PR, a branch
   diff, a pasted diff, or specific files. Emits a severity-ranked findings table + `APPROVE` /
@@ -29,8 +37,11 @@ that won't let an agent stop while any of it is red.
   dead-perf all fail) · the host repo's own lint/test · build · vet · `-race` tests · a
   **test-theater guard** · (full) testcontainers integration.
 - **Hooks** — auto-format Go on save; a **Stop hook** that blocks "done" while the gate is red.
-- **Agents** — `anvil:researcher` (real ask → one-liner specs), `anvil:architect` (post-approval
-  design pass → `design.md`), `anvil:test-engineer` (proves all four test kinds are real & complete),
+- **Agents** — `anvil:designer` (context-engineering research: big-company patterns + Flink prior art
+  + flinkpedia → draft requirements, run by `/anvil:design`), `anvil:arch-reviewer` (adversarial
+  architecture review → `GOOD`/`NEEDS_WORK`, drives the design loop), `anvil:researcher` (real ask →
+  one-liner specs), `anvil:architect` (post-approval design pass → `design.md`; also the Flink-native
+  system-architecture stage of `/anvil:design`), `anvil:test-engineer` (proves all four test kinds are real & complete),
   `anvil:reviewer` (five-axis adversarial review), `anvil:verifier` (proves it runs against real deps
   **and** enforces that every spec was built, every required skill was applied, and no upstream agent
   overstated its work). Each returns only its distilled artifact, so the main loop's context stays
@@ -115,8 +126,8 @@ they travel with the plugin); per-repo lessons live under `~/.claude/anvil/lesso
 
 ```
 .claude-plugin/{plugin,marketplace}.json   manifest + installable marketplace
-commands/{ship,review}.md                   /anvil:ship — the loop · /anvil:review — standalone review
-agents/{researcher,architect,test-engineer,reviewer,verifier}.md   the subagents the loop spawns
+commands/{ship,design,review}.md            /anvil:ship — the loop · /anvil:design — Flink data-platform design → review loop · /anvil:review — standalone review
+agents/{designer,arch-reviewer,researcher,architect,test-engineer,reviewer,verifier}.md   the subagents the commands spawn
 skills/{spec-driven,architecture,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra,go-git,go-docs,doubt-driven}/   the standard (architecture/ has a Go reference library)
 hooks/{hooks.json,lib.sh,post-edit-go.sh,stop-gate.sh}   format-on-save + the Stop gate
 scripts/{gate.sh,verify-staging.sh,anvil-arm.sh}         the DoD gate + staging + arming
