@@ -83,8 +83,9 @@ mandatory BQ subscription, and the dead-letter. For how subscriptions are wired 
 
 ## Step 3 — Implement the publisher in the service
 
-Publish the event to the topic on the real code path, mapping your domain type to the schema
-fields (POSIX-ms timestamps, string enums). For the concrete publisher wiring (client setup,
+Publish the event to the topic on the real code path using the shared
+`github.com/goflink/go/pubsub` client (`NewClient(ctx, cfg)` + its `Publisher`), mapping your
+domain type to the schema fields (POSIX-ms timestamps, string enums). For the concrete publisher wiring (client setup,
 marshalling, error handling), `goflink/discovery` PR #1372 is the reference implementation to
 follow. On a publish failure, surface it as an error metric (`go-observability`) — a lost publish
 is silent data loss.

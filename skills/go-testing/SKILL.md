@@ -94,7 +94,9 @@ the critical paths; each one must exercise request → handler → store → res
 ## BDD — honest steps
 
 If the repo has a BDD layer (godog/cucumber), it's the behavioral spec: when you change observable
-behavior, add or update a scenario in the same change. Reuse existing Given/When/Then phrasing.
+behavior, add or update a scenario in the same change. Reuse existing Given/When/Then phrasing —
+and Flink's shared `github.com/goflink/go/test` (incl. `test/cucumber`) for common step/conversion
+helpers rather than re-implementing them.
 Steps must exercise real behavior and assert real outcomes — a step that always passes is a fake
 spec. Keep scenarios deterministic (fixed clock). A user-visible spec should have a scenario.
 

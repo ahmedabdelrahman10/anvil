@@ -91,6 +91,25 @@ judgment the linter can't encode. When rules tension, **clarity wins.**
 - Databases: never `SELECT *`; kill N+1 with a JOIN or a batch; parameterize every query.
 - Measure before tuning (`go test -bench -benchmem`, `benchstat`); don't guess.
 
+## Shared Flink modules (`goflink/go`) — reuse, don't hand-roll
+
+Before hand-rolling an HTTP client, JWT validation, a DB client, a Pub/Sub client, or a service
+bootstrap, reach for the shared `goflink/go` modules — they carry Flink's logging/tracing/health/
+retry/auth conventions, so a bespoke version is a near-duplicate that drifts. It's a multi-module
+repo (each has its own `go.mod`): `go get github.com/goflink/go/<module>@latest`.
+
+| Need | Module | Use |
+|---|---|---|
+| Outbound HTTP + retry | `github.com/goflink/go/http` | `NewRetryableClient(opts…)` (wraps `hashicorp/go-retryablehttp`; `RetryMax`/wait/policy options) + JSON encoders, health |
+| Auth / Auth0 JWT | `github.com/goflink/go/auth`, `.../auth/auth0` | Auth0 validation middleware + `claims` extraction; `auth/locker` for locking — don't hand-roll JWT parsing |
+| Database (Postgres) | `github.com/goflink/go/db`, `.../db/postgres` | Postgres client + config |
+| Pub/Sub | `github.com/goflink/go/pubsub` | `NewClient(ctx, cfg)` + `Publisher` — publish analytics/domain events (see `go-analytics`) |
+| Service bootstrap | `github.com/goflink/go/container` | runs the app with logger/tracer/profiler/health + wired deps; implement its `App` interface (`Name`/`Run`/`Close`) |
+| Test / BDD helpers | `github.com/goflink/go/test`, `.../test/cucumber` | shared godog/cucumber steps + conversion helpers (see `go-testing`) |
+
+Prefer these over a third-party or bespoke equivalent unless the repo already standardized on
+something else; if you must deviate, say why. Details: `github.com/goflink/go` (README + per-module READMEs).
+
 ## Common rationalizations
 
 | Rationalization | Reality |

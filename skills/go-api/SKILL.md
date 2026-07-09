@@ -57,7 +57,10 @@ bug to fix, not a status to return for bad input.
 ## Security — Auth0, permissions, least privilege
 
 Flink surfaces are protected by **Auth0 JWT** (`Authorization: Bearer <token>`), validated per
-request (issuer, audience, expiry, signature). Never trust the client for identity.
+request (issuer, audience, expiry, signature). Use the shared `github.com/goflink/go/auth/auth0`
+(validation middleware + `claims`) rather than hand-rolling JWT parsing. For outbound calls to
+other services, use the shared retryable client `github.com/goflink/go/http` (`NewRetryableClient`).
+Never trust the client for identity.
 
 - Authorize on the **permission** the route needs, not just authentication: reads and writes carry
   distinct scopes (e.g. `read:pricing_rule:all` vs `write:pricing_rule:all`). A valid token missing
