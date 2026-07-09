@@ -29,12 +29,21 @@ that won't let an agent stop while any of it is red.
   dead-perf all fail) · the host repo's own lint/test · build · vet · `-race` tests · a
   **test-theater guard** · (full) testcontainers integration.
 - **Hooks** — auto-format Go on save; a **Stop hook** that blocks "done" while the gate is red.
-- **Agents** — `anvil:researcher` (real ask → one-liner specs), `anvil:test-engineer` (proves all
-  four test kinds are real & complete), `anvil:reviewer` (five-axis adversarial review),
-  `anvil:verifier` (proves it runs against real deps **and** enforces that every spec was built,
-  every required skill was applied, and no upstream agent overstated its work).
-- **Skills** — `spec-driven` (the intent gate), `go-craft` + `go-testing` (the craftsmanship +
-  real-tests standard, distilled from masterclass Go codebases), `go-debugging` (root-cause triage),
+- **Agents** — `anvil:researcher` (real ask → one-liner specs), `anvil:architect` (post-approval
+  design pass → `design.md`), `anvil:test-engineer` (proves all four test kinds are real & complete),
+  `anvil:reviewer` (five-axis adversarial review), `anvil:verifier` (proves it runs against real deps
+  **and** enforces that every spec was built, every required skill was applied, and no upstream agent
+  overstated its work). Each returns only its distilled artifact, so the main loop's context stays
+  clean.
+- **Orchestration** — heavy stages run as subagents that hand back only their artifact (specs,
+  `design.md` + summary, findings table, verdict); the architect's boundary rules become
+  `depguard`/`go-arch-lint` checks the gate enforces; and when `bd` (beads) is installed the loop
+  tracks itself as a beads epic + one issue per spec, so progress lives outside the context window
+  and survives across subagents and sessions. Skipped silently if `bd` is absent.
+- **Skills** — `spec-driven` (the intent gate), `architecture` (the post-approval design pass, Go —
+  principles, patterns, GoF-the-Go-way, distributed systems, ADRs), `go-craft` + `go-testing` (the
+  craftsmanship + real-tests standard, distilled from masterclass Go codebases), `go-debugging`
+  (root-cause triage),
   `go-api` (HTTP/gRPC contract · Auth0 · validation · status codes · Postman · protos),
   `go-observability` (Datadog metrics-first), `go-analytics` (events → Pub/Sub → BigQuery),
   `flink-infra` (`<service>-infra` · helm-service-charts · Teller secrets · Envoy Gateway ·
@@ -107,8 +116,8 @@ they travel with the plugin); per-repo lessons live under `~/.claude/anvil/lesso
 ```
 .claude-plugin/{plugin,marketplace}.json   manifest + installable marketplace
 commands/{ship,review}.md                   /anvil:ship — the loop · /anvil:review — standalone review
-agents/{researcher,test-engineer,reviewer,verifier}.md   the subagents the loop spawns
-skills/{spec-driven,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra,go-git,go-docs,doubt-driven}/SKILL.md   the standard
+agents/{researcher,architect,test-engineer,reviewer,verifier}.md   the subagents the loop spawns
+skills/{spec-driven,architecture,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra,go-git,go-docs,doubt-driven}/   the standard (architecture/ has a Go reference library)
 hooks/{hooks.json,lib.sh,post-edit-go.sh,stop-gate.sh}   format-on-save + the Stop gate
 scripts/{gate.sh,verify-staging.sh,anvil-arm.sh}         the DoD gate + staging + arming
 golangci.strict.yml                          the diff-scoped complexity budget

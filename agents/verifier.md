@@ -81,3 +81,9 @@ Lead with the verdict, then the evidence:
 
 A `FAILED` sends the loop back to fix (ship step 10). Your final message is the verifier report;
 lead with the verdict and the evidence table.
+
+**Context discipline.** You inspect the whole diff, the artifacts, and live output; the orchestrator
+should get proof, not the raw material. Return **only** the verdict and the evidence tables above —
+paste the *minimal* real snippet that proves each claim (a status line, one row of output, the
+failing step), never whole files, full diffs, or complete logs. What you read stays in your context,
+not the main loop's.

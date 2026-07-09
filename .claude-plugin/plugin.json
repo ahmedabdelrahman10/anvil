@@ -1,6 +1,6 @@
 {
   "name": "anvil",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The hard surface an agent's Go output gets hammered into shape against: a task-to-reviewed-staging-verified-PR loop with a machine-checkable Definition-of-Done gate, a single spec approval, and adversarial review + enforcement. Go + Flink.",
   "author": {
     "name": "Ahmed Abdelrahman"

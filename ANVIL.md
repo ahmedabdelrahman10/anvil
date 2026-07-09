@@ -55,10 +55,20 @@ nesting, and extracting small single-purpose functions. A genuinely-immutable gl
 ## The loop
 
 `/anvil:ship <task>` runs: **understand** (research the real ask — free text, Jira, or GitHub) →
-**specify & approve** → **plan** (idiomatic design) → **implement** (fill the skeleton tests, TDD) →
-**gate** → **test** (all kinds real & complete) → **adversarial review** → **provision infra** →
-**staging-verify** → **learn**. `implement → gate → test → review` loops until the gate is green,
-the tests are real and complete, and reviewers are clean. You exit on the gate, not on a feeling.
+**specify & approve** → **design** (`anvil:architect` runs the `architecture` skill → `design.md`) →
+**implement** (fill the skeleton tests, TDD) → **gate** → **test** (all kinds real & complete) →
+**adversarial review** → **provision infra** → **staging-verify** → **learn**.
+`implement → gate → test → review` loops until the gate is green, the tests are real and complete,
+and reviewers are clean. You exit on the gate, not on a feeling.
+
+**Quiet orchestration, deterministic checks, beads-tracked.** Every heavy stage runs in a *subagent*
+that returns only its distilled artifact (specs, `design.md` + summary, coverage matrix, findings
+table, verdict) — the main loop holds the artifacts and passes paths, never the material the agents
+read, so the context stays clean and the run stays cheap. Prefer a machine check over a judgment
+call wherever one exists: the gate is the Definition of Done, and the architect's boundary rules
+become `depguard`/`go-arch-lint` rules the gate enforces. When `bd` (beads) is installed the loop
+tracks itself as a beads epic + one issue per spec, so progress lives outside the context window and
+survives across subagents and sessions; without `bd`, those steps are skipped silently.
 
 **The one human gate — the spec.** After research, anvil presents the change as a numbered list of
 one-liner specifications (the *what*, not the *how*), turns each into a **failing skeleton test**,
@@ -68,6 +78,7 @@ line to fix here versus a whole PR later. See the `spec-driven` skill.
 ## The skills (invoked every run)
 
 The Go idioms and process live in skills, invoked by the loop: `spec-driven` (the intent gate),
+`architecture` (the post-approval design pass → `design.md`, run by the `anvil:architect` subagent),
 `go-craft` and `go-testing` (the craft + real-tests standard), `go-debugging` (root-cause triage),
 `go-api` (HTTP/gRPC contract, Auth0, validation, status codes, Postman, gRPC protos via
 `grpc-protos`, roles via `iac-auth0`), `go-observability` (Datadog metrics-first, logs on error
@@ -75,8 +86,8 @@ only), `go-analytics` (events → Pub/Sub → BigQuery via `data-streaming-platf
 `flink-infra` (the `<service>-infra` repo, `helm-service-charts`, Teller secrets, Envoy Gateway,
 Cloudflare), `go-git` (Jira-first branch/PR naming, atomic commits, SemVer), `go-docs` (ADRs +
 godoc + changelog), and `doubt-driven` (in-flight adversarial self-check on non-trivial decisions).
-`go-craft`/`go-testing`/`spec-driven`/`go-git`/`go-observability` fire every run; the rest on the
-surfaces they apply to.
+`go-craft`/`go-testing`/`spec-driven`/`go-git`/`go-observability` fire every run; `architecture`
+fires once, right after spec approval; the rest on the surfaces they apply to.
 
 ## Autonomy
 

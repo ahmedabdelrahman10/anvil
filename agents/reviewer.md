@@ -68,3 +68,8 @@ End with exactly one verdict line:
 - `VERDICT: REQUEST_CHANGES` — at least one critical/major finding; list which must be fixed.
 
 Your final message is consumed by the /ship loop, so lead with the table and verdict.
+
+**Context discipline.** You read the whole diff; the orchestrator should only get your judgment.
+Return **only** the findings table and the verdict line — cite `file:line`, never paste the code you
+reviewed or the full diff. What you read stays in your context, not the main loop's; that isolation
+is the point of running review in a separate agent.

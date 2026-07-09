@@ -66,3 +66,8 @@ Return, leading with the verdict:
 Your final message is consumed by the /ship loop: if `GAPS_FOUND` includes red tests, the loop
 returns to implement; if you only added green coverage, it proceeds. Never claim coverage you
 didn't run.
+
+**Context discipline.** You read the whole test surface; the orchestrator should not inherit it.
+Return **only** the verdict, the coverage matrix, and the short lists above — reference tests by path
+and `SPEC-N`, paste at most the one failing assertion + command for a red test, never whole test
+files or full run logs. What you read stays in your context, not the main loop's.
