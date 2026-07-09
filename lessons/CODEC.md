@@ -31,3 +31,27 @@ density comes from structure + brevity, never from invented notation.
 ## Section order (both stores)
 `## Structure & interfaces` · `## Errors` · `## Concurrency` · `## Testing` · `## Performance` ·
 `## gRPC & DB` · `## Build & tooling` · `## Process & review` · `## Retired / corrected beliefs`
+
+## Contributing lessons across a team
+The shared store (`lessons/global.md`) travels with the plugin, so teammates already *receive*
+lessons on install. To let many people *add* them without stepping on each other — plain git, no
+database:
+
+- **Merge is automatic.** `.gitattributes` sets `lessons/*.md merge=union`, so two people appending
+  concurrently keep both sides' lines with no conflict. Because the store is strictly
+  one-entry-per-line, union merge is safe here (it is *not* safe for prose).
+- **Author-tag the id so it can't collide.** With no central lock, two contributors can both grab
+  `#A004`. Suffix your initials: `#A004-aa`. Ids stay unique and `[SUPERSEDES]` / `[STALE → ]`
+  still resolve. The top `<!-- next-id -->` counter is then advisory (a hint for your own next id,
+  not a shared lock); if union merge leaves two counter lines, the curator pass reconciles them.
+- **Prefer a PR for the shared store.** Lessons are curated, not a dump — a PR into `global.md`
+  keeps quality mechanical, the same as the gate. A shared branch with direct push also works when
+  review is overkill; union merge covers both.
+- **Keep proprietary facts out of the shared store.** Anything specific to one codebase (its build
+  quirks, domain data, internal names) belongs in the local per-repo store
+  (`~/.claude/anvil/lessons/<repo>.md`, ids `#Rnnn`), which never leaves your machine. Only
+  cross-cutting, non-proprietary lessons (`#Annn`) go in `global.md`.
+
+Do **not** move this store into a database (Dolt/SQL/etc.). The whole store is designed to be read
+and extended by any model from the raw markdown with no tooling; a DB dependency trades that
+portability for merge machinery git already provides on an append-only file this size.

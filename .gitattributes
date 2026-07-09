@@ -1,0 +1,4 @@
+# Lessons are append-only, one entry per line — union-merge so concurrent
+# contributions from teammates keep BOTH sides' lines instead of conflicting.
+# `union` is a built-in git merge driver; no per-clone config needed.
+lessons/*.md merge=union
