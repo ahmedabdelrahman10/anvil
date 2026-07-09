@@ -19,6 +19,11 @@ that won't let an agent stop while any of it is red.
   the gate, not on a feeling. The **one human approval** is the spec: anvil presents the change as
   a numbered list of one-liner specifications, makes each a failing skeleton test, and asks you to
   approve that list before it writes a line.
+- **`/anvil:review <PR | branch | files | diff>`** — a **standalone** review: the `anvil:reviewer`
+  rubric (five axes + the complexity budget + a Go checklist) run on demand against a PR, a branch
+  diff, a pasted diff, or specific files. Emits a severity-ranked findings table + `APPROVE` /
+  `REQUEST_CHANGES`. It does **not** run or change the ship loop — `/anvil:ship` still reviews at
+  stage 7 exactly as before.
 - **The gate** (`scripts/gate.sh`) — format · a strict structure/complexity linter scoped to
   your **diff** (functions >60 lines, cognitive complexity >20, deep nesting, mutable globals,
   dead-perf all fail) · the host repo's own lint/test · build · vet · `-race` tests · a
@@ -101,7 +106,7 @@ they travel with the plugin); per-repo lessons live under `~/.claude/anvil/lesso
 
 ```
 .claude-plugin/{plugin,marketplace}.json   manifest + installable marketplace
-commands/ship.md                            /anvil:ship — the loop
+commands/{ship,review}.md                   /anvil:ship — the loop · /anvil:review — standalone review
 agents/{researcher,test-engineer,reviewer,verifier}.md   the subagents the loop spawns
 skills/{spec-driven,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra,go-git,go-docs,doubt-driven}/SKILL.md   the standard
 hooks/{hooks.json,lib.sh,post-edit-go.sh,stop-gate.sh}   format-on-save + the Stop gate
