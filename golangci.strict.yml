@@ -1,0 +1,75 @@
+# anvil's STRUCTURE & COMPLEXITY gate — the portable floor for new Go code.
+#
+# This is not a replacement for a repo's own .golangci.yml. anvil runs the host
+# repo's linter too (unless --solo). THIS config adds only the structural linters
+# that catch junior-grade code — 300-line functions, deep nesting, mutable globals,
+# work that ignores performance — and it runs DIFF-SCOPED
+# (`--new-from-merge-base=<default-branch>`), so it judges only the code a change
+# introduces, never the repo's legacy. The bar comes from the Go codebases the
+# community treats as masterclasses (wtf, bolt, groupcache, memberlist, upspin):
+# functions ~20–60 lines, no mutable globals, no dead-perf patterns.
+#
+# Core linters only (no plugins), so a stock golangci-lint v2 runs it anywhere.
+
+version: "2"
+
+run:
+  allow-parallel-runners: true
+
+linters:
+  default: none
+  enable:
+    - funlen           # a function that does one thing is short
+    - gocognit         # cognitive complexity — the "does too many things" detector
+    - gocyclo          # cyclomatic complexity — nested branches / loops / switches
+    - nestif           # deeply nested if/else — use guard clauses + early return
+    - maintidx         # holistic maintainability index
+    - dupl             # copy-paste — extract the shared block
+    - gochecknoglobals # no mutable package-level state
+    - gochecknoinits   # no init() — hidden global state and load-order coupling
+    - gocritic         # diagnostic + PERFORMANCE checks
+  settings:
+    funlen:
+      lines: 60
+      statements: 40
+      ignore-comments: true
+    gocognit:
+      min-complexity: 20
+    gocyclo:
+      min-complexity: 15
+    nestif:
+      min-complexity: 4
+    maintidx:
+      under: 20
+    dupl:
+      threshold: 150
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+      disabled-checks:
+        - codegenComment
+        - deprecatedComment
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      # test files: table-driven cases run long and package-level fixtures are fine.
+      # test QUALITY is enforced by the gate's theater guard + the review stage.
+      - path: _test.go
+        linters: [funlen, gocognit, gocyclo, maintidx, dupl, gochecknoglobals]
+      # main/wireup is expected to be a longer, flatter composition function.
+      - path: (^|/)cmd/
+        linters: [funlen, gocognit, gochecknoglobals]
+      - path: (^|/)main\.go$
+        linters: [funlen, gocognit, gochecknoglobals]
+    paths:
+      - vendor
+      - \.gen\.go$
+      - \.pb\.go$
+      - \.sql\.go$
+      - _templ\.go$
