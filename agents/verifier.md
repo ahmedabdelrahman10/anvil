@@ -53,6 +53,10 @@ scope, prove the footprint; its absence is a FAILED, named:
 - **flink-infra** — every new runtime config/secret/resource is declared in `goflink/<service>-infra`
   (permissions/roles in `iac-auth0`, secrets via Teller/Secret Manager not `.env`, public exposure
   via Envoy Gateway + Auth0); the infra PR is linked, or "nothing new" is stated.
+- **go-git** — the branch and PR title start with the Jira id (or `PRI-1-1` when none was given);
+  commits are atomic with honest messages; a consumer-facing change is versioned/tagged.
+- **go-docs** — a significant/irreversible decision has an ADR; exported identifiers are documented;
+  a consumer-facing change has a changelog entry.
 
 ## 4 · Agent-honesty audit (did the upstream agents do their job?)
 Cross-check each stage's claim against reality; a mismatch means that stage lied or fell short:

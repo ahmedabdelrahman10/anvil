@@ -31,9 +31,11 @@ that won't let an agent stop while any of it is red.
 - **Skills** — `spec-driven` (the intent gate), `go-craft` + `go-testing` (the craftsmanship +
   real-tests standard, distilled from masterclass Go codebases), `go-debugging` (root-cause triage),
   `go-api` (HTTP/gRPC contract · Auth0 · validation · status codes · Postman · protos),
-  `go-observability` (Datadog metrics-first), `go-analytics` (events → Pub/Sub → BigQuery), and
+  `go-observability` (Datadog metrics-first), `go-analytics` (events → Pub/Sub → BigQuery),
   `flink-infra` (`<service>-infra` · helm-service-charts · Teller secrets · Envoy Gateway ·
-  Cloudflare). Uses the deeper `cc-skills-golang:*` specialists when installed.
+  Cloudflare), `go-git` (Jira-first branch/PR · atomic commits · SemVer), `go-docs` (ADRs · godoc ·
+  changelog), and `doubt-driven` (in-flight adversarial self-check). Uses the deeper
+  `cc-skills-golang:*` specialists when installed.
 - **Lessons** — git-versioned compounding memory (`lessons/`), plus per-repo lessons under
   `~/.claude/anvil/` that never touch the target repo.
 
@@ -101,7 +103,7 @@ they travel with the plugin); per-repo lessons live under `~/.claude/anvil/lesso
 .claude-plugin/{plugin,marketplace}.json   manifest + installable marketplace
 commands/ship.md                            /anvil:ship — the loop
 agents/{researcher,test-engineer,reviewer,verifier}.md   the subagents the loop spawns
-skills/{spec-driven,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra}/SKILL.md   the standard
+skills/{spec-driven,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra,go-git,go-docs,doubt-driven}/SKILL.md   the standard
 hooks/{hooks.json,lib.sh,post-edit-go.sh,stop-gate.sh}   format-on-save + the Stop gate
 scripts/{gate.sh,verify-staging.sh,anvil-arm.sh}         the DoD gate + staging + arming
 golangci.strict.yml                          the diff-scoped complexity budget

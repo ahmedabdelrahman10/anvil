@@ -71,10 +71,12 @@ The Go idioms and process live in skills, invoked by the loop: `spec-driven` (th
 `go-craft` and `go-testing` (the craft + real-tests standard), `go-debugging` (root-cause triage),
 `go-api` (HTTP/gRPC contract, Auth0, validation, status codes, Postman, gRPC protos via
 `grpc-protos`, roles via `iac-auth0`), `go-observability` (Datadog metrics-first, logs on error
-only), `go-analytics` (events → Pub/Sub → BigQuery via `data-streaming-platform-events`), and
+only), `go-analytics` (events → Pub/Sub → BigQuery via `data-streaming-platform-events`),
 `flink-infra` (the `<service>-infra` repo, `helm-service-charts`, Teller secrets, Envoy Gateway,
-Cloudflare). `go-craft`/`go-testing`/`spec-driven`/`go-observability` fire every run; `go-api`,
-`go-analytics`, and `flink-infra` on the surfaces they apply to.
+Cloudflare), `go-git` (Jira-first branch/PR naming, atomic commits, SemVer), `go-docs` (ADRs +
+godoc + changelog), and `doubt-driven` (in-flight adversarial self-check on non-trivial decisions).
+`go-craft`/`go-testing`/`spec-driven`/`go-git`/`go-observability` fire every run; the rest on the
+surfaces they apply to.
 
 ## Autonomy
 

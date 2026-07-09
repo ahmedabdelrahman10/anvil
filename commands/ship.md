@@ -44,18 +44,21 @@ finding you truly believe is wrong is the rare thing to raise with the human, no
 - Arm anvil for this repo (enables the gate hooks here, zero repo footprint):
   `bash "${CLAUDE_PLUGIN_ROOT}/scripts/anvil-arm.sh" arm`
 - Read `${CLAUDE_PLUGIN_ROOT}/ANVIL.md` and **invoke anvil's skills — every run**: `go-craft`,
-  `go-testing`, `spec-driven`, and `go-observability` (every production feature gets metrics). Add
-  per-surface: `go-api` (HTTP/gRPC surface), `go-analytics` (emits an analytics/BI event or sends
-  data to BigQuery), `flink-infra` (needs any runtime resource — config, secret, topic, bucket, DB,
-  gateway exposure, Datadog monitor), and `go-debugging` the moment anything goes red. Use the
-  deeper `cc-skills-golang:*` specialists for the surfaces you touch (grpc, database, concurrency,
+  `go-testing`, `spec-driven`, `go-git`, and `go-observability` (every production feature gets
+  metrics). Add per-surface: `go-api` (HTTP/gRPC surface), `go-analytics` (emits an analytics/BI
+  event or sends data to BigQuery), `flink-infra` (needs any runtime resource — config, secret,
+  topic, bucket, DB, gateway exposure, Datadog monitor), `go-docs` (a significant/irreversible
+  decision or a public API/proto change), `doubt-driven` (before baking in a non-trivial or
+  hard-to-reverse decision), and `go-debugging` the moment anything goes red. Use the deeper
+  `cc-skills-golang:*` specialists for the surfaces you touch (grpc, database, concurrency,
   performance, security, error-handling) when installed.
 - **`--solo` mode:** ignore the host repo's `CLAUDE.md`/`AGENTS.md` and any project-level skills
   entirely — build ONLY to anvil's standard (ANVIL.md + anvil skills), and run the gate with
   `ANVIL_SOLO=1` so it skips the host's lint/test too. Without `--solo`, honor the host repo's
   conventions AND anvil's floor (anvil is additive).
 - Confirm you're on a feature branch off the default branch (not the default branch itself). If
-  not, create one: `<KEY>-<slug>` if the task has/gets a ticket, else `anvil-<slug>`.
+  not, create one named per `go-git` — **it starts with the Jira id**: `<JIRA>-<slug>` (e.g.
+  `PRI-1212-add-rate-limiter`), or `PRI-1-1-<slug>` when no ticket was given.
 
 ## 1 · Understand the real ask (research — do not skip)
 
@@ -66,8 +69,10 @@ error/edge/auth path — plus the named surface (packages/files/RPCs/tables/prot
 that must not break, and any BLOCKING open question. Input modes: free text (the description IS the
 brief — you author the specs; highest risk), a Jira key (read via Atlassian MCP), a GitHub issue
 (read via `gh`). If a genuinely blocking question can't be resolved from code/docs/tickets, ask the
-user now (`AskUserQuestion`) before going further. If `--ticket` was passed, file a Jira ticket
-from the intent via the `atlassian:jira` skill and use its key for the branch/PR.
+user now (`AskUserQuestion`) before going further. **Capture the Jira id** from the task
+description (a bare key like `PRI-1212`, or phrasing like "jira story id is PRI-1212") — it
+prefixes the branch and PR per `go-git`; if none was given, use `PRI-1-1`. If `--ticket` was
+passed, file a Jira ticket from the intent via the `atlassian:jira` skill and use its key instead.
 
 ## 2 · Specify & approve — the single human gate
 
@@ -99,7 +104,11 @@ code that passes. Guard clauses, small single-purpose functions, small interface
 with `%w`, `context.Context` first and never stored, error-only structured logging with `ctx`,
 injected clocks. For an API surface, validate at the boundary, enforce Auth0 + the right
 permission, return honest status/gRPC codes (`go-api`). Instrument every path with a Datadog metric
-(`go-observability`). The PostToolUse hook auto-formats your Go. Commit in small, focused steps.
+(`go-observability`). Before baking in a non-trivial or hard-to-reverse decision — a
+concurrency/ordering invariant, a migration, a public API/proto or event-schema change — apply
+`doubt-driven`: spawn a fresh-context skeptic to try to disprove it while the fix is still one
+edit. The PostToolUse hook auto-formats your Go. Commit in small, focused steps per `go-git`
+(atomic, why-not-what messages, the Co-Authored-By trailer).
 
 ## 5 · Gate (the hard Definition of Done)
 
@@ -152,11 +161,13 @@ verification, since the staging deploy reads from it. If the change needs nothin
 
 ## 9 · Open the PR
 
-Push. `gh pr create` with title `<KEY>: <summary>` if there's a ticket, else a plain imperative
-`<summary>` (never invent a fake ticket number). Body: **what & why** (from step 1), the **approved
-specs as a checklist**, **test evidence** (paste the green `gate.sh full` summary + the
-test-engineer coverage matrix), any **infra PR link**, **risk/rollback**. `--draft` if the flag was
-passed; fill the repo's PR template if any.
+Push the Jira-prefixed branch. `gh pr create` per `go-git` — the **title starts with the Jira id**:
+`<JIRA>: <summary>` (e.g. `PRI-1212: add per-tenant rate limiter`), or `PRI-1-1: <summary>` when no
+ticket was given (never invent a real-looking number). Body: **what & why** (from step 1), the
+**approved specs as a checklist**, **test evidence** (paste the green `gate.sh full` summary + the
+test-engineer coverage matrix), any **infra PR link**, **risk/rollback**, and a **changelog entry /
+ADR link** where the change warrants it (`go-docs`). `--draft` if the flag was passed; fill the
+repo's PR template if any.
 
 ## 10 · Verify on staging (unless `--no-staging`)
 
