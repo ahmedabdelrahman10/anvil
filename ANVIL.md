@@ -55,9 +55,26 @@ nesting, and extracting small single-purpose functions. A genuinely-immutable gl
 ## The loop
 
 `/anvil:ship <task>` runs: **understand** (research the real ask — free text, Jira, or GitHub) →
-**plan** (idiomatic design) → **TDD** (failing test first) → **implement** → **gate** →
-**adversarial review** → **staging-verify** → **learn**. `implement → gate → review` loops until
-the gate is green and reviewers are clean. You exit on the gate, not on a feeling.
+**specify & approve** → **plan** (idiomatic design) → **implement** (fill the skeleton tests, TDD) →
+**gate** → **test** (all kinds real & complete) → **adversarial review** → **provision infra** →
+**staging-verify** → **learn**. `implement → gate → test → review` loops until the gate is green,
+the tests are real and complete, and reviewers are clean. You exit on the gate, not on a feeling.
+
+**The one human gate — the spec.** After research, anvil presents the change as a numbered list of
+one-liner specifications (the *what*, not the *how*), turns each into a **failing skeleton test**,
+and asks you to approve that list. That is the only approval anvil asks for — a wrong spec is one
+line to fix here versus a whole PR later. See the `spec-driven` skill.
+
+## The skills (invoked every run)
+
+The Go idioms and process live in skills, invoked by the loop: `spec-driven` (the intent gate),
+`go-craft` and `go-testing` (the craft + real-tests standard), `go-debugging` (root-cause triage),
+`go-api` (HTTP/gRPC contract, Auth0, validation, status codes, Postman, gRPC protos via
+`grpc-protos`, roles via `iac-auth0`), `go-observability` (Datadog metrics-first, logs on error
+only), `go-analytics` (events → Pub/Sub → BigQuery via `data-streaming-platform-events`), and
+`flink-infra` (the `<service>-infra` repo, `helm-service-charts`, Teller secrets, Envoy Gateway,
+Cloudflare). `go-craft`/`go-testing`/`spec-driven`/`go-observability` fire every run; `go-api`,
+`go-analytics`, and `flink-infra` on the surfaces they apply to.
 
 ## Autonomy
 

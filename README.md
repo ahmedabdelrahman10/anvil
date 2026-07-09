@@ -14,17 +14,26 @@ that won't let an agent stop while any of it is red.
 
 ## What's in the box
 
-- **`/anvil:ship <task>`** — the loop: understand → plan → TDD → implement → gate → adversarial
-  review → staging-verify → learn. Loops on the gate, not on a feeling.
+- **`/anvil:ship <task>`** — the loop: understand → **specify & approve** → plan → implement →
+  gate → **test** → adversarial review → **provision infra** → staging-verify → learn. Loops on
+  the gate, not on a feeling. The **one human approval** is the spec: anvil presents the change as
+  a numbered list of one-liner specifications, makes each a failing skeleton test, and asks you to
+  approve that list before it writes a line.
 - **The gate** (`scripts/gate.sh`) — format · a strict structure/complexity linter scoped to
   your **diff** (functions >60 lines, cognitive complexity >20, deep nesting, mutable globals,
   dead-perf all fail) · the host repo's own lint/test · build · vet · `-race` tests · a
   **test-theater guard** · (full) testcontainers integration.
 - **Hooks** — auto-format Go on save; a **Stop hook** that blocks "done" while the gate is red.
-- **Agents** — `anvil:researcher`, `anvil:reviewer` (adversarial craft review), `anvil:verifier`
-  (proves it runs against real deps).
-- **Skills** — `go-craft`, `go-testing` (the craftsmanship standard, distilled from masterclass
-  Go codebases). Uses the deeper `cc-skills-golang:*` specialists when installed.
+- **Agents** — `anvil:researcher` (real ask → one-liner specs), `anvil:test-engineer` (proves all
+  four test kinds are real & complete), `anvil:reviewer` (five-axis adversarial review),
+  `anvil:verifier` (proves it runs against real deps **and** enforces that every spec was built,
+  every required skill was applied, and no upstream agent overstated its work).
+- **Skills** — `spec-driven` (the intent gate), `go-craft` + `go-testing` (the craftsmanship +
+  real-tests standard, distilled from masterclass Go codebases), `go-debugging` (root-cause triage),
+  `go-api` (HTTP/gRPC contract · Auth0 · validation · status codes · Postman · protos),
+  `go-observability` (Datadog metrics-first), `go-analytics` (events → Pub/Sub → BigQuery), and
+  `flink-infra` (`<service>-infra` · helm-service-charts · Teller secrets · Envoy Gateway ·
+  Cloudflare). Uses the deeper `cc-skills-golang:*` specialists when installed.
 - **Lessons** — git-versioned compounding memory (`lessons/`), plus per-repo lessons under
   `~/.claude/anvil/` that never touch the target repo.
 
@@ -91,8 +100,8 @@ they travel with the plugin); per-repo lessons live under `~/.claude/anvil/lesso
 ```
 .claude-plugin/{plugin,marketplace}.json   manifest + installable marketplace
 commands/ship.md                            /anvil:ship — the loop
-agents/{researcher,reviewer,verifier}.md    the subagents the loop spawns
-skills/{go-craft,go-testing}/SKILL.md        the craftsmanship standard
+agents/{researcher,test-engineer,reviewer,verifier}.md   the subagents the loop spawns
+skills/{spec-driven,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra}/SKILL.md   the standard
 hooks/{hooks.json,lib.sh,post-edit-go.sh,stop-gate.sh}   format-on-save + the Stop gate
 scripts/{gate.sh,verify-staging.sh,anvil-arm.sh}         the DoD gate + staging + arming
 golangci.strict.yml                          the diff-scoped complexity budget
