@@ -11,6 +11,13 @@ interfaces, explicit errors, and a flat layout — simplicity over architectural
 over-engineering.** anvil's linter enforces the measurable parts; this skill is the
 judgment the linter can't encode. When rules tension, **clarity wins.**
 
+## When to use
+
+- Writing or reviewing any Go in an anvil task.
+- Deciding how to structure a package, shape an interface, name a thing, handle an error, or
+  flatten control flow.
+- Judging whether an abstraction earns its complexity (the linter passed but it still smells).
+
 ## Structure — packages as layers, dependencies point inward
 
 - Root/domain holds pure types + the interfaces the business speaks; it imports **no
@@ -84,8 +91,31 @@ judgment the linter can't encode. When rules tension, **clarity wins.**
 - Databases: never `SELECT *`; kill N+1 with a JOIN or a batch; parameterize every query.
 - Measure before tuning (`go test -bench -benchmem`, `benchstat`); don't guess.
 
-## Anti-patterns (do not ship)
+## Common rationalizations
+
+| Rationalization | Reality |
+|---|---|
+| "I'll add an interface so it's testable" | One impl + a direct test needs no interface. Premature interfaces are layer-cake; add one at the second impl or a real double need. |
+| "Return the SDK type, the caller can use it" | A leaked `*sql.Rows`/proto type makes the port useless as an abstraction. Return your domain types. |
+| "A format-string log is fine" | It's unqueryable and drops trace context. Use `slog` typed attributes with the `*Context` methods. |
+| "I'll just nest another if" | A staircase hides the happy path. Guard-clause the edge and return; keep the main line at the left margin. |
+| "One global cache is harmless" | Unguarded package-level mutable state is a race waiting to happen. Guard it or inject it. |
+| "While I'm here I'll refactor this too" | A drive-by refactor inside a fix pollutes the diff and the review. Keep the change focused. |
+
+## Red flags (do not ship)
+
 Premature interfaces · implementation-side interface declarations · SDK types leaking through
 ports · format-string logging · unguarded global mutable state · `utils`/`common`/`helpers`
 packages · fat handlers doing validation+logic+I/O · refactoring drive-bys inside a fix ·
-commenting out a linter instead of fixing it.
+`SELECT *` / N+1 / unparameterized queries · storing a `ctx` in a struct · commenting out a
+linter instead of fixing it.
+
+## Verification
+
+- [ ] Dependencies point inward — domain imports no infrastructure; the compiler shows no cycles.
+- [ ] Interfaces are small (1–3 methods), consumer-side, and return domain types.
+- [ ] Control flow is flat: guard clauses, early return, one thing per function, step-down order.
+- [ ] Errors wrapped with `%w` and context, handled once, never ignored; `error` interface returned.
+- [ ] `ctx` is the first parameter, never stored; logging is structured with typed attributes.
+- [ ] No unguarded global mutable state; every goroutine has a known exit; `-race` clean.
+- [ ] Hot paths: bounded input, sensible preallocation, no `SELECT *`/N+1, measured before tuned.
