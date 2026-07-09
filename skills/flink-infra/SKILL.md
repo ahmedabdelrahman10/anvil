@@ -49,9 +49,31 @@ Never put secrets in `.env` files (they leak into git, unencrypted). Two regimes
   Then `teller show` (verify) and `teller run --reset --shell -- go run main.go` (run). Docker:
   `docker run --env-file <(teller env) …`. Optionally sync non-secret `.env` via a `dotenv` provider.
   `.teller.yml` is safe to commit (no secrets in it); Teller is **local-dev only**.
-- **Staging/prod** — the secret is declared in the `cloudresources` chart (`gcpSecrets`) and
-  auto-loaded from GCP Secret Manager as a Kubernetes secret; the app reads it as an env var. Add
-  the actual secret value in Secret Manager out-of-band; the chart references it by name.
+- **Staging/prod (Platform 2.0)** — a GCP Secret Manager secret is synced into a K8s secret by the
+  ExternalSecrets operator and consumed as an env var. Three moves, in two files + one CLI step:
+  1. **Declare the secret** in `<env>/infra/values.yaml` under `cloudresources.gcpSecrets`:
+     ```yaml
+     cloudresources:
+       gcpSecrets:
+         keys: [MY_FIRST_SECRET, MY_SECOND_SECRET]
+         additionalAccessors: ['group:my-team@goflink.com']   # view the value
+         versionAdders:       ['group:my-team@goflink.com']   # add a new version
+     ```
+     The chart **prefixes the service name** (repo `foo` → the GCP secret is `FOO_MY_FIRST_SECRET`).
+     Accessors/versionAdders must be **Google groups** (`group:` prefix), so on/offboarding is a group edit.
+  2. **Consume it** in `<env>/workload/values.yaml` under `externalSecrets` — the `key` **must start
+     with the service prefix** (else ArgoCD can't find the GCP secret) and `name` is the env var:
+     ```yaml
+     workload:
+       externalSecrets:
+         - { key: FOO_MY_FIRST_SECRET, name: FIRST_SECRET_VAR, version: 2 }
+     ```
+  3. **Add the value** out-of-band (never in git) via gcloud — `-n` avoids a trailing newline:
+     `echo -n "VALUE" | gcloud secrets versions add FOO_MY_FIRST_SECRET --data-file=-`
+     (set the project first: `gcloud config set project flink-core-staging`). Until a value exists
+     the ExternalSecret shows **Degraded** and the pod errors `secret "..." not found` — expected.
+  **Pin `version: N`, never `latest`.** Updating the GCP value does not reload a running pod;
+  bumping the `version` in `workload/values.yaml` is what triggers the rollout that re-reads it.
 
 ## Exposure — Envoy Gateway (the API Gateway)
 

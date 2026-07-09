@@ -29,6 +29,10 @@ Define the shape before the handler. The contract is the spec; the implementatio
   before changing an existing proto. See the `golang-grpc` specialist skill for server/client/interceptor patterns.
 - Separate input types from output types (server-generated fields live only on the output).
 - Extend, don't mutate: add optional fields; never change or remove an existing one on a live surface.
+- **`omitempty` trap:** empty string is a string's zero value, so `json:"description,omitempty"`
+  drops a field the response is *supposed* to always emit (even when populated with `""`). Use a
+  plain tag for any field the contract always returns; reserve `omitempty` for genuinely-optional
+  pointer/slice/map fields where "absent" and "zero" mean the same thing on the wire.
 
 ## Validate at the boundary, trust inside
 

@@ -67,6 +67,9 @@ the value.
 - Document **known gotchas** where they bite (ordering assumptions, "must be called before …",
   concurrency/idempotence invariants the compiler can't express).
 - No commented-out code (git has history); no `// TODO` for something you should just do now.
+- **Don't document absence.** Negative-space comments ("we don't sync X because…", "no column for
+  Y because…") describe a decision that isn't in the code and rot fastest — that context belongs in
+  the PR/commit message. Comment what *is* there and why it's shaped that way.
   This reinforces `go-craft`'s clarity rule — a function that needs a comment to explain its
   sections is several functions.
 

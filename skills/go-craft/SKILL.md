@@ -40,6 +40,10 @@ judgment the linter can't encode. When rules tension, **clarity wins.**
   A leaked SDK type makes the interface mockable but useless as an abstraction.
 - **No interface until there's a second implementation or a real test-double need.** One
   concrete impl + tests that hit it directly → no interface yet. Accept interfaces, return structs.
+- **Method order is documentation.** When a consumer interface bundles many methods, order them to
+  match the orchestrator's execution sequence, so a reader scanning the caller and the interface
+  sees the same shape twice. Reorder the interface in the same commit the caller reorders — not
+  alphabetically, not newest-at-bottom.
 
 ## Control flow — flat, small, one thing per function
 
@@ -89,6 +93,9 @@ judgment the linter can't encode. When rules tension, **clarity wins.**
   on proven hot paths. Bound all external input (`io.LimitReader`); copy slices/maps at
   boundaries you don't own.
 - Databases: never `SELECT *`; kill N+1 with a JOIN or a batch; parameterize every query.
+- **Filter before you build.** In a loop that constructs a domain object then discards it, put the
+  cheapest discriminating predicate *before* the constructor — don't build (and serialize) a heavy
+  object for rows a prefix/flag check will throw away. It also keeps "seen X" counts honest.
 - Measure before tuning (`go test -bench -benchmem`, `benchstat`); don't guess.
 
 ## Shared Flink modules (`goflink/go`) — reuse, don't hand-roll

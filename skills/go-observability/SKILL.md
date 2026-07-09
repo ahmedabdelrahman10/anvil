@@ -75,7 +75,13 @@ slog.ErrorContext(ctx, "rule write failed",
     "reason", reason, "rule_id", id, "err", err) // structured fields, not a sentence
 ```
 
-- Structured key/value (slog), stable message, never string-interpolated prose.
+- Structured key/value, stable message, never string-interpolated prose. Use Flink's
+  `github.com/goflink/go-telemetry/v2/flog` (slog-based, auto-correlates Datadog trace/span ids) —
+  always pass `ctx` (`flog.ErrorContext(ctx, …)`); a format string loses correlation.
+- **Match the `slog.*` constructor to the field's Go type — never narrow-cast.** `slog.Int` takes
+  `int` (32-bit on some targets), so `slog.Int("id", int(id64))` silently truncates a TalonOne-style
+  `int64` id; use `slog.Int64`. Likewise `slog.Float64`/`slog.Duration`/`slog.Time`/`slog.Bool`.
+  `-race` and tests won't catch it — it's an arch-dependent runtime defect.
 - A correlation/trace id on every error line (accept or generate at the boundary; propagate via
   `context.Context`) so a failure ties back to its request and Datadog trace.
 - **Never** log secrets, tokens, or PII — telemetry is a classic leak path.
