@@ -22,7 +22,15 @@ Identify the input mode and gather accordingly:
 - **Jira key** (`PROJ-123`): read the ticket + linked pages via the Atlassian MCP (load its tools
   with ToolSearch). If unauthorized, say so and fall back to other sources.
 - **GitHub issue/PR** (`#123`/URL): read it with `gh`.
-Use WebSearch/WebFetch for external context (RFCs, library docs) when relevant.
+
+**Search flinkpedia first for internal Flink knowledge.** flinkpedia indexes Flink's whole
+documentation corpus — Confluence, GitHub, and Google Drive exported to markdown — into
+Postgres + Elasticsearch and serves hybrid search (BM25 + semantic) built for agents. Before
+hand-searching or asking the human, invoke the `flinkpedia` skill (or its
+`flinkpedia_search_documents` / `flinkpedia_fetch_documents` MCP tools) to find the org
+conventions, prior art, RFCs/ADRs, runbooks, naming standards, and how similar things are already
+done across services — so your specs and invariants reflect what Flink already decided, not a
+from-scratch guess. Use WebSearch/WebFetch for external context (RFCs, library docs) when relevant.
 
 ## Map the surface first-hand
 Read the actual code — package layout, the ports/interfaces and files the change touches, how
