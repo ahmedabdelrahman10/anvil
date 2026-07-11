@@ -1,0 +1,7 @@
+interface:
+  display_name: "Anvil Design"
+  short_description: "Design and review Flink data-platform architecture"
+  default_prompt: "Use @anvil:design to design a Flink analytics or GCP-backed platform component."
+  brand_color: "#3B82F6"
+policy:
+  allow_implicit_invocation: true
