@@ -46,9 +46,10 @@ Turn the list into test skeletons — one test per spec, named for the spec, tha
 purpose**. Do NOT implement them; they are the contract the implementer fills in step "implement".
 
 - **Unit / integration (Go):** a test function (or table row) per spec that fails loudly until
-  filled — `t.Fatalf("SPEC-2: not implemented")`. Keep the arrange/act/assert shape as comments
-  so the implementer writes assertions, not scaffolding. Name it after the behavior
-  (`TestCreateRule_UnknownHubGroup_Returns422`).
+  filled — `t.Fatalf("SPEC-2: not implemented")`. Name it after the behavior
+  (`TestCreateRule_UnknownHubGroup_Returns422`) so the name carries the intent; don't leave
+  arrange/act/assert banner comments for the implementer to fill — the test name and the spec are
+  the scaffolding.
 - **BDD (if the repo uses godog/cucumber):** a `.feature` scenario per user-visible spec with
   Given/When/Then in the repo's existing phrasing; leave the steps undefined (pending) so the
   suite is red.

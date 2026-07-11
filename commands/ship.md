@@ -53,6 +53,19 @@ Two rules shape *how* the loop runs, not just what it does:
   gate (`gate.sh`) is the Definition of Done; the architect's boundary rules become
   `depguard`/`go-arch-lint` rules the gate enforces; the skeleton tests encode the specs. Reserve
   model judgment for what a machine genuinely cannot decide.
+- **Fan out — parallelize independent work.** Subagents with no data dependency on each other run
+  **concurrently in a single message** (one batch of tool calls), never one after another: the whole
+  review panel in step 7, and — in verify (step 10) — the local `gate full` alongside the staging
+  assertions. Only serialize a stage that truly consumes another's output (the architect needs the
+  approved specs; the implementer needs `design.md`; the verifier needs the deploy). Everything else
+  is a fan-out.
+- **Spend tokens like they're scarce.** Each subagent invokes **only** the skills its surface
+  touches (the always-on set + the per-surface ones from step 0 — not the whole catalogue), reads
+  only the code the change involves, and prefers the `skills/architecture/references/*` one-pagers
+  over the deep ~700 KB pattern tree. The orchestrator holds artifacts and passes **paths, not
+  payloads** — never paste a subagent's returned file bodies, diffs, or logs back into a later
+  prompt. Poll long-running waits (staging deploy, CI) with `/loop` or `ScheduleWakeup`, or run them
+  as background tasks — don't hold the context open spinning.
 
 **Beads is the shared task state.** If `bd` (beads) is installed, the loop tracks itself as issues so
 progress survives across subagents and sessions and lives *outside* the context window (set up in
@@ -149,7 +162,9 @@ approved skeleton tests are the behavior. Make the skeleton tests real and pass 
 failing test's assertions first (TDD: it must fail for the right reason before you write the code),
 then the smallest idiomatic code that passes. Guard clauses, small single-purpose functions, small
 interfaces, errors wrapped with `%w`, `context.Context` first and never stored, error-only
-structured logging with `ctx`, injected clocks. For an API surface, validate at the boundary,
+structured logging with `ctx`, injected clocks. **Write code, not comments** — clear names and
+small functions do the explaining; add a comment only for a non-obvious *why* (`go-craft`), never
+to narrate or restate the code. For an API surface, validate at the boundary,
 enforce Auth0 + the right permission, return honest status/gRPC codes (`go-api`). Instrument every
 path with a Datadog metric (`go-observability`). Before baking in a non-trivial or hard-to-reverse
 decision — a concurrency/ordering invariant, a migration, a public API/proto or event-schema change
@@ -182,7 +197,8 @@ green coverage, re-gate and continue.
 
 ## 7 · Adversarial review (parallel, then fix, then re-gate)
 
-Spawn reviewers **concurrently**, scoped to your diff (`git diff <default-branch>...HEAD`):
+Spawn the whole review panel **concurrently — in a single message** (one batch of tool calls, so
+they run in parallel, not in sequence), each scoped to your diff (`git diff <default-branch>...HEAD`):
 
 - `anvil:reviewer` — five-axis craft review (correctness, craft/architecture, security,
   performance) + smell hunt + structural remedies.
@@ -237,9 +253,11 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/verify-staging.sh" --service <name> --remote
   [--cluster <c> --project <p> --region <r>] -- <grpcurl|curl … localhost:$ANVIL_PORT …>
 ```
 
-Poll the deploy first (`gh run list`/`gh run view`; treat IN_PROGRESS/QUEUED as non-terminal).
-Assert **each approved spec** against the running service, and **re-run the critical assertion** —
-once-green-once-red is a FAIL. **Loop back on `FAILED`:** if the verifier finds a real defect
+Poll the deploy with `/loop` or `ScheduleWakeup` rather than blocking the context (`gh run list`/
+`gh run view`; treat IN_PROGRESS/QUEUED as non-terminal — see `go-git`/lesson on `--json name,state`
+polling). While it deploys, the verifier can run `gate.sh full` locally **in parallel** with the
+staging assertions — they're independent. Assert **each approved spec** against the running service,
+and **re-run the critical assertion** — once-green-once-red is a FAIL. **Loop back on `FAILED`:** if the verifier finds a real defect
 (wrong response, a spec unmet, a flaky assertion), return to step 4, fix it, re-gate (5), re-test
 (6), re-review (7), let it redeploy, and re-verify — until `VERIFIED`. A staging gap that is *not*
 a code defect (no deploy yet, missing access, seed not run) is not a loop: report it as a gap and

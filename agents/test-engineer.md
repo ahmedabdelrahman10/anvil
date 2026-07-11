@@ -52,6 +52,8 @@ For every missing or theatrical test, **write the real one** (anvil style, per `
 table-driven units, a BDD scenario in the repo's phrasing, a testcontainers integration test, an
 E2E request/RPC asserting status + body. Add the missing error-path cases. Do not weaken existing
 tests to make anything pass. Re-run what you add and confirm it's green for the right reason.
+Hold the tests you write to anvil's minimal-comments floor (`go-craft`): the test name carries the
+intent — no arrange/act/assert banner comments, no narration.
 
 ## 4 · Report
 Return, leading with the verdict:

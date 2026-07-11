@@ -52,6 +52,13 @@ nesting, and extracting small single-purpose functions. A genuinely-immutable gl
 (`regexp.MustCompile`, a lookup table, a sentinel `error`) may carry
 `//nolint:gochecknoglobals // <reason>` — with a reason.
 
+**Write code, not comments.** anvil's floor is *minimal comments*: clear names, small functions,
+and flat control flow do the explaining. No comments that restate the code, no section-banner or
+narration comments, no commented-out code. A comment exists only for a non-obvious *why* the code
+can't carry (an invariant, a deliberate workaround, a footgun); doc comments only where the
+contract is non-obvious or the host linter requires them. Missing comments are never a finding;
+redundant ones are. The idioms live in `go-craft`.
+
 ## The loop
 
 **Before the loop (optional):** when the system itself is unsettled — a Flink data/analytics platform,
@@ -79,6 +86,14 @@ call wherever one exists: the gate is the Definition of Done, and the architect'
 become `depguard`/`go-arch-lint` rules the gate enforces. When `bd` (beads) is installed the loop
 tracks itself as a beads epic + one issue per spec, so progress lives outside the context window and
 survives across subagents and sessions; without `bd`, those steps are skipped silently.
+
+**Fast and cheap by construction.** Independent subagents fan out **in parallel** (the review panel;
+the local gate alongside staging verify), each loading **only** the skills its surface touches and
+preferring the `architecture/references/*` one-pagers over the deep pattern tree. The `quick` gate
+scopes its `-race` run to the *changed* packages and the Stop hook caches the last green by diff
+fingerprint, so the inner loop stays fast on a large repo; `full` + CI are the whole-repo safety net.
+Long waits (staging deploy, CI) are polled with `/loop`/`ScheduleWakeup` or a background task, not by
+holding the context open.
 
 **The one human gate — the spec.** After research, anvil presents the change as a numbered list of
 one-liner specifications (the *what*, not the *how*), turns each into a **failing skeleton test**,

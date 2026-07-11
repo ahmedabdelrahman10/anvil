@@ -34,9 +34,11 @@ that won't let an agent stop while any of it is red.
   stage 7 exactly as before.
 - **The gate** (`scripts/gate.sh`) — format · a strict structure/complexity linter scoped to
   your **diff** (functions >60 lines, cognitive complexity >20, deep nesting, mutable globals,
-  dead-perf all fail) · the host repo's own lint/test · build · vet · `-race` tests · a
-  **test-theater guard** · (full) testcontainers integration.
-- **Hooks** — auto-format Go on save; a **Stop hook** that blocks "done" while the gate is red.
+  dead-perf all fail) · the host repo's own lint · build · vet · `-race` tests · a
+  **test-theater guard** · (full) the host test suite + testcontainers integration. `quick` scopes
+  the `-race` run to the **changed packages** for a fast inner loop; `full` + CI run the whole module.
+- **Hooks** — auto-format Go on save; a **Stop hook** that blocks "done" while the gate is red
+  (and caches the last green by diff fingerprint, so a repeated stop with no new Go edit is instant).
 - **Agents** — `anvil:designer` (context-engineering research: big-company patterns + Flink prior art
   + flinkpedia → draft requirements, run by `/anvil:design`), `anvil:arch-reviewer` (adversarial
   architecture review → `GOOD`/`NEEDS_WORK`, drives the design loop), `anvil:researcher` (real ask →
@@ -50,7 +52,10 @@ that won't let an agent stop while any of it is red.
   `design.md` + summary, findings table, verdict); the architect's boundary rules become
   `depguard`/`go-arch-lint` checks the gate enforces; and when `bd` (beads) is installed the loop
   tracks itself as a beads epic + one issue per spec, so progress lives outside the context window
-  and survives across subagents and sessions. Skipped silently if `bd` is absent.
+  and survives across subagents and sessions. Skipped silently if `bd` is absent. Independent
+  subagents **fan out in parallel** (the review panel; the local gate alongside staging verify),
+  each loads only the skills its surface needs, and long waits (deploy, CI) are polled with `/loop`
+  / `ScheduleWakeup` rather than by holding the context open — so a run is faster and cheaper.
 - **Skills** — `spec-driven` (the intent gate), `architecture` (the post-approval design pass, Go —
   principles, patterns, GoF-the-Go-way, distributed systems, ADRs), `go-craft` + `go-testing` (the
   craftsmanship + real-tests standard, distilled from masterclass Go codebases), `go-debugging`
@@ -63,6 +68,21 @@ that won't let an agent stop while any of it is red.
   `cc-skills-golang:*` specialists when installed.
 - **Lessons** — git-versioned compounding memory (`lessons/`), plus per-repo lessons under
   `~/.claude/anvil/` that never touch the target repo.
+
+## Works with Claude Code and Codex
+
+anvil ships as a Claude Code plugin, but its standard and gate are **tool-agnostic** — plain
+markdown + portable bash, no dependency on any one harness. [`AGENTS.md`](AGENTS.md) at the repo
+root is the entry point any AGENTS.md-aware agent (Codex, or a manual run) reads: it maps the
+Claude-only affordances (slash commands, subagents, hooks, the `Skill` tool) to portable
+equivalents, and the Definition-of-Done gate runs the same for everyone:
+
+```sh
+bash /path/to/anvil/scripts/gate.sh quick   # from inside the target Go repo — any shell, no plugin harness
+```
+
+Claude Code users get the orchestrated loop via the slash commands below; other tools follow the
+same phased instructions in `commands/*.md` and enforce the same `gate.sh`.
 
 ## Install
 
@@ -126,11 +146,12 @@ they travel with the plugin); per-repo lessons live under `~/.claude/anvil/lesso
 
 ```
 .claude-plugin/{plugin,marketplace}.json   manifest + installable marketplace
+ANVIL.md · AGENTS.md                         the standard · the tool-agnostic entry point (Codex/any agent)
 commands/{ship,design,review}.md            /anvil:ship — the loop · /anvil:design — Flink data-platform design → review loop · /anvil:review — standalone review
 agents/{designer,arch-reviewer,researcher,architect,test-engineer,reviewer,verifier}.md   the subagents the commands spawn
 skills/{spec-driven,architecture,go-craft,go-testing,go-debugging,go-api,go-observability,go-analytics,flink-infra,go-git,go-docs,doubt-driven}/   the standard (architecture/ has a Go reference library)
 hooks/{hooks.json,lib.sh,post-edit-go.sh,stop-gate.sh}   format-on-save + the Stop gate
 scripts/{gate.sh,verify-staging.sh,anvil-arm.sh}         the DoD gate + staging + arming
 golangci.strict.yml                          the diff-scoped complexity budget
-ANVIL.md · lessons/                          the standard + compounding memory
+lessons/                                     compounding memory (global here + per-repo under ~/.claude/anvil)
 ```

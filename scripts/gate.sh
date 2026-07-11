@@ -9,13 +9,17 @@
 # loops against.
 #
 #   MODES   quick (default): format · anvil-strict-lint(diff) · host-lint · build ·
-#                            vet · tests(-race) · test-theater guard.  No Docker.
-#           full           : quick + integration (testcontainers/tagged), Docker-gated.
+#                            vet · -race tests SCOPED to changed packages · test-theater
+#                            guard. No Docker, no host `make test` — fast inner loop.
+#           full           : quick, plus the host test suite (`make test`) / whole-module
+#                            -race, plus integration (testcontainers/tagged), Docker-gated.
+#                            This + CI are the cross-package safety net for quick's scoping.
 #
 #   ENV     GATE_BASE       diff base (default: auto-detected origin default branch)
 #           ANVIL_SOLO=1    ignore the host repo's own lint/test; anvil floor only
 #           ANVIL_GOLANGCI  path to a golangci-lint binary to use
 #           GATE_SKIP       space-separated step names to skip
+#           GATE_TEST_ALL=1 in quick, run -race over the whole module (not just changed pkgs)
 #
 # EXIT 0 iff every step that ran passed.
 
@@ -80,6 +84,17 @@ changed_go() {
     git diff --name-only --cached --diff-filter=ACMR 2>/dev/null
   } | sort -u | grep '\.go$' | grep -vE '\.(gen|pb)\.go$|\.sql\.go$' || true
 }
+# The unique, still-existing package dirs the change touches, as `./dir` patterns.
+# Used to scope the fast (quick) test run — the inner loop's biggest cost on a large
+# module is `go test -race ./...` compiling+instrumenting every package. `go build`/
+# `go vet` stay whole-repo (cached, and they catch cross-package breakage); `full`
+# and CI run the whole `-race` suite as the safety net.
+changed_pkgs() {
+  changed_go | while IFS= read -r f; do
+    d="$(dirname "$f")"; [ -d "$d" ] || continue
+    ls "$d"/*.go >/dev/null 2>&1 && printf './%s\n' "$d"
+  done | sort -u
+}
 has_make_target() { [ -f Makefile ] && make -n "$1" >/dev/null 2>&1; }
 
 # ------------------------------------------------------------------ 1. FORMAT --
@@ -133,11 +148,26 @@ run_vet()   { skipped vet && { skip vet; return; }; step "vet (go vet ./...)"; g
 # -------------------------------------------------------------------- 5. TESTS --
 run_tests() {
   skipped tests && { skip tests; return; }
-  if [ "${ANVIL_SOLO:-0}" != "1" ] && has_make_target test; then
-    step "tests (make test)"; make test && ok "tests (make test)" || fail "tests — reproduce: make test"; return
+  # full: host CI parity (make test) then whole-repo -race. quick: fast + scoped to the
+  # changed packages, no make/Docker (host `make test` often pulls in the container suite).
+  if [ "$MODE" = "full" ]; then
+    if [ "${ANVIL_SOLO:-0}" != "1" ] && has_make_target test; then
+      step "tests (make test — host suite)"; make test && ok "tests (make test)" || fail "tests — reproduce: make test"; return
+    fi
+    step "tests (go test -race ./... — whole module)"
+    go test -race ./... && ok "tests (-race, all)" || fail "tests — reproduce: go test -race ./..."
+    return
   fi
-  step "tests (go test -race ./...)"
-  go test -race ./... && ok "tests (-race)" || fail "tests — reproduce: go test -race ./..."
+  if [ "${GATE_TEST_ALL:-0}" = "1" ]; then
+    step "tests (go test -race ./... — GATE_TEST_ALL)"
+    go test -race ./... && ok "tests (-race, all)" || fail "tests — reproduce: go test -race ./..."
+    return
+  fi
+  local pkgs; pkgs="$(changed_pkgs | tr '\n' ' ')"
+  [ -z "$(printf '%s' "$pkgs" | tr -d '[:space:]')" ] && { ok "tests — no changed Go packages"; return; }
+  step "tests (go test -race — changed packages)"
+  # shellcheck disable=SC2086
+  go test -race $pkgs && ok "tests (-race, changed pkgs)" || fail "tests — reproduce: go test -race $pkgs  (or GATE_TEST_ALL=1 for the whole module)"
 }
 
 # ------------------------------------------------------- 6. TEST-THEATER GUARD --

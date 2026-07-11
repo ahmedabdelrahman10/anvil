@@ -36,8 +36,19 @@ changed="$({ git diff --name-only --diff-filter=ACMR "$base"...HEAD 2>/dev/null
 
 state="$(anvil_home)/state"; mkdir -p "$state" 2>/dev/null
 counter="$state/$(repo_hash "$root").n"
+green="$state/$(repo_hash "$root").green"
 
 [ -z "$changed" ] && { rm -f "$counter" 2>/dev/null; allow; }
+
+# Cache the last GREEN by a fingerprint of the Go diff: repeated Stop attempts with no
+# new Go edits shouldn't re-pay the whole gate (a big token/time saver over a long loop).
+fp="$({ git diff "$base"...HEAD -- '*.go' 2>/dev/null
+        git diff HEAD -- '*.go' 2>/dev/null
+        git diff --cached -- '*.go' 2>/dev/null; } | shasum 2>/dev/null | cut -c1-40)"
+if [ -n "$fp" ] && [ -f "$green" ] && [ "$fp" = "$(cat "$green" 2>/dev/null)" ]; then
+  rm -f "$counter" 2>/dev/null
+  allow "✅ anvil gate GREEN (cached — Go diff unchanged since last check). Safe to stop."
+fi
 
 n=0; [ -f "$counter" ] && n="$(cat "$counter" 2>/dev/null || echo 0)"
 if [ "$n" -ge "$MAX_BLOCKS" ]; then
@@ -46,7 +57,11 @@ if [ "$n" -ge "$MAX_BLOCKS" ]; then
 fi
 
 out="$(NO_COLOR=1 GATE_BASE="$base" bash "$gate" quick 2>&1)"; rc=$?
-if [ "$rc" -eq 0 ]; then rm -f "$counter" 2>/dev/null; allow "✅ anvil gate GREEN — safe to stop."; fi
+if [ "$rc" -eq 0 ]; then
+  rm -f "$counter" 2>/dev/null
+  printf '%s' "$fp" > "$green" 2>/dev/null
+  allow "✅ anvil gate GREEN — safe to stop."
+fi
 
 echo $((n+1)) > "$counter"
 reason="$(printf '%s' "$out" | awk 'f{print} /gate summary/{f=1}')"

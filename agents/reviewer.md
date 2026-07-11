@@ -16,6 +16,8 @@ Read `${CLAUDE_PLUGIN_ROOT}/ANVIL.md` and invoke the `go-craft` + `go-testing` s
 surfaces the diff touches, also invoke the matching skills: `go-api` (HTTP/gRPC), `go-observability`
 (metrics/logs), and the `cc-skills-golang:*` specialists if installed (`golang-concurrency`,
 `golang-database`, `golang-grpc`, `golang-performance`, `golang-error-handling`, `golang-security`).
+Load **only** the specialists whose surface the diff actually touches — not all six by reflex; each
+one you don't need is context you don't spend.
 
 ## Scope
 The diff vs the default branch: `git diff "$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"...HEAD`.
@@ -36,7 +38,11 @@ yet — report that as the top finding and stop. If green, review the judgment c
    with context; `context.Context` first, never stored; naming (MixedCaps, consistent receivers,
    no `utils`/`helpers`); step-down ordering. Flag god-structs/fat functions the linter missed, a
    new conditional bolted onto an unrelated flow, a refactor that relocates complexity instead of
-   removing it, and feature logic leaking into a shared module.
+   removing it, and feature logic leaking into a shared module. **Comment noise is a craft defect:**
+   flag comments that restate the code, section-banner/narration comments, commented-out code, and
+   doc comments that just echo a signature — the fix is a rename/extraction or deletion, not prose.
+   A *missing* doc comment is **not** a finding on its own (anvil's floor is minimal comments); only
+   redundant or misleading comments are.
 4. **Security** — input validated at the boundary; third-party/RPC responses treated as untrusted;
    SQL parameterized (no string-built queries); authorization on the right permission (403 vs 401);
    no secrets in code/logs; honest status codes / gRPC codes; no internals leaked in error bodies.

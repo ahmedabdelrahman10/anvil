@@ -23,9 +23,15 @@ Invoke the `architecture` skill for the design vocabulary (its `distributed-syst
 `decision-making/` references). Invoke **`go-analytics`** (how Flink moves events → Pub/Sub →
 BigQuery, dead-letters, the mandatory BQ subscription) and **`flink-infra`** (the `<service>-infra`
 repo, `helm-service-charts`, the GCP resources Flink provisions) so your draft requirements reflect
-what Flink can actually build with. Read only the reference a question needs — never the whole tree.
+what Flink can actually build with. Read only the reference a question needs — **default to the
+`skills/architecture/references/*` one-pagers**, never the whole ~700 KB architecture tree.
 
-## Do the context engineering — three sources, in order
+## Do the context engineering — three sources
+
+"In order" below is synthesis priority, not a blocking sequence: fire independent lookups
+**concurrently** — batch your flinkpedia queries, web fetches, and code greps in a single round of
+tool calls rather than awaiting each — so the research is fast. Order matters only when you
+synthesize.
 
 - **flinkpedia first (internal — the strongest signal).** flinkpedia indexes Flink's whole doc corpus
   (Confluence, GitHub, Google Drive) into hybrid search built for agents. Invoke the `flinkpedia`

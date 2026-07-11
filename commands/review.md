@@ -72,7 +72,10 @@ state from step 0 instead.)
    `utils`/`helpers`/`common` packages); step-down ordering. Flag god-structs/fat functions the
    linter missed, a new conditional bolted onto an unrelated flow, a refactor that relocates
    complexity instead of removing it, and feature logic leaking into a shared module. **Repeated
-   conditionals are a signal of a missing abstraction.**
+   conditionals are a signal of a missing abstraction.** Flag **comment noise** — comments that
+   restate the code, section-banner/narration comments, commented-out code, doc comments that echo
+   a signature (fix by rename/extract/delete, not prose). A *missing* comment is not a finding;
+   anvil's floor is minimal comments.
 4. **Security** — input validated at the boundary; third-party/RPC responses treated as untrusted;
    SQL parameterized (no string-built queries); XSS/CSRF/SSRF/path-traversal guarded; authorization
    on the right permission (403 vs 401); no secrets in code/logs; honest status/gRPC codes; no
@@ -108,6 +111,9 @@ A quick pass distilled for Go — flag any that the diff trips:
   < 1.22) loop-variable capture.
 - **Organization** — packages named by function (`user`, `order`), not `common`/`utils`; export only
   what's needed; use `internal/` to restrict; break import cycles with a shared type or interface.
+- **Comments** — minimal: none restate the code, no section-banner/narration comments, no
+  commented-out code, no `// TODO` left sitting; a comment exists only for a non-obvious *why*.
+  Doc comments only where the contract is non-obvious or the host lint requires them.
 - **Tools the author should have run** — `gofmt`/`goimports`, `go vet ./...`, `go test -race ./...`,
   and for hot paths `go build -gcflags='-m'` (escape analysis) + a `Benchmark…` with `-benchmem`.
 

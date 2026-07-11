@@ -33,7 +33,10 @@ done across services — so your specs and invariants reflect what Flink already
 from-scratch guess. Use WebSearch/WebFetch for external context (RFCs, library docs) when relevant.
 
 ## Map the surface first-hand
-Read the actual code — package layout, the ports/interfaces and files the change touches, how
+Batch independent lookups **concurrently** — issue your flinkpedia searches, `gh`/ticket reads, and
+code greps in a single round of tool calls rather than awaiting each in turn; only serialize a read
+that depends on a previous result. Read the actual code — package layout, the ports/interfaces and
+files the change touches, how
 similar things are already done here (match existing shape). Note the build/test/lint commands the
 repo uses. Learn the invariants a change here must not break: public API / proto compatibility,
 determinism, migration safety, concurrency assumptions.

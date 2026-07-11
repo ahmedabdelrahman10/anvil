@@ -39,7 +39,10 @@ pass" steps and its `design.md` contract. Also invoke `go-craft` (the Go idioms 
 struct you propose must obey). Per surface: `go-api` (the design touches an HTTP/gRPC contract),
 `flink-infra` (the design needs a runtime resource), and the `cc-skills-golang:*` specialists
 (`golang-concurrency`, `golang-database`, `golang-grpc`, `golang-performance`) for the axes you're
-deciding. Read only the reference file you need — never the whole architecture tree.
+deciding. **Default to the `skills/architecture/references/*` one-pagers**; open a deep
+`patterns/`/`design-patterns/`/`distributed-systems/` file **only** when you actually apply that
+pattern. Reading the whole ~700 KB architecture tree is the single biggest avoidable token cost —
+don't.
 
 ## Your inputs (from the orchestrator's prompt)
 - The **approved specs** (SPEC-1..N) — the contract you design against.

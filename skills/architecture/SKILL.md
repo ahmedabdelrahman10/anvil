@@ -93,7 +93,11 @@ failure teaches, not just blocks.
 
 ## The reference library
 
-Read only the file you need for the decision at hand — never the whole tree.
+Read only the file you need for the decision at hand — **never the whole tree**. Default to the
+`references/` one-pagers below; open a deep `patterns/` / `design-patterns/` / `distributed-systems/`
+/ `decision-making/` file **only** when you're actually applying that specific pattern. The deep
+tree is ~700 KB across 35 files — reading it wholesale is the biggest avoidable token cost in the
+loop.
 
 ### `principles/` — the design principles that decide structure
 - `solid.md` · `dry-kiss-yagni.md` · `separation-of-concerns.md` · `dependency-inversion.md`

@@ -55,10 +55,17 @@ Lifecycle: `Proposed → Accepted → (Superseded | Deprecated)`. **Never delete
 decision changes, write a new one that supersedes it. The trail ("we used to think X, now Y") is
 the value.
 
-## godoc — comment the why, at the boundary
+## godoc — the why, only where it earns its place
 
-- **Every exported identifier has a doc comment that starts with its name** and is a full sentence
-  (`// RuleStore persists authored rules and …`). This is what `go doc` and pkg.go.dev render.
+anvil's default is **minimal comments** — clear names and small functions do the explaining (see
+`go-craft`). Documentation is for the *why* the code can't carry, written sparingly, not a comment
+on every line or every symbol.
+
+- **Doc comments are not mandatory on every exported identifier.** Write a name-leading doc comment
+  (`// RuleStore persists authored rules and …`, what `go doc` / pkg.go.dev render) **when the
+  contract isn't obvious from the signature, or when the host repo's linter requires it** (revive
+  `exported` / `golint`). A doc comment that just re-says the signature (`// GetUser gets a user.`)
+  is noise — drop it. A missing doc comment is not a defect anvil flags; a redundant one is.
 - Comment **intent and non-obvious constraints**, never the mechanics:
   ```go
   // Rate limiting uses a sliding window reset at the window boundary (not a fixed
@@ -92,7 +99,8 @@ the value.
 
 | Rationalization | Reality |
 |---|---|
-| "The code is self-documenting" | Code shows what. It never shows why, what was rejected, or what constraint applies. |
+| "The code is self-documenting" | For the *what*, it should be — that's the goal, so don't narrate it. But code never shows *why*, what was rejected, or what constraint applies; that (only that) is worth a comment or an ADR. |
+| "Every exported symbol needs a doc comment" | Only where the contract isn't obvious or the host lint requires it. A doc comment that echoes the signature is noise. |
 | "ADRs are overhead" | A 10-minute ADR kills the same 2-hour debate six months later — and stops the next agent re-deciding. |
 | "I'll document the API once it's stable" | The doc is the first test of the design; it stabilizes faster when written. |
 | "Comments rot" | Comments on *why* are stable; comments on *what* rot — which is why you only write the former. |
@@ -101,7 +109,8 @@ the value.
 ## Red flags
 
 - A significant/irreversible decision with no ADR; an old ADR edited or deleted instead of superseded.
-- Exported Go identifiers with no doc comment, or a comment that restates the code.
+- A comment that restates the code, narrates sections, or echoes a signature (the common defect —
+  not a missing comment).
 - A proto/OpenAPI spec drifted out of sync with the handlers.
 - Commented-out code left in; `// TODO` sitting for weeks.
 - A consumer-facing release with no changelog entry, or a changelog that's dumped commit messages.
@@ -109,7 +118,7 @@ the value.
 ## Verification
 
 - [ ] Significant/irreversible decisions have an ADR (superseded, never deleted); platform ones link the RFC.
-- [ ] Every exported identifier has a name-leading doc comment; comments explain why, not what.
+- [ ] Comments are minimal and explain *why*, never *what*; none restate code or echo a signature. Exported doc comments exist only where the contract is non-obvious or the host lint requires them.
 - [ ] Known gotchas documented where they bite; no commented-out code or stale TODOs.
 - [ ] Proto/OpenAPI/event-schema comments match the implementation.
 - [ ] README runs the service; consumer-facing changes have a changelog entry.

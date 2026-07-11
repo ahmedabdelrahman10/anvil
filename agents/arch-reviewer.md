@@ -21,7 +21,9 @@ imperfect — do not invent findings to look thorough, and do not block on a nit
 Invoke the `architecture` skill (its `principles/`, `patterns/`, `distributed-systems/` references
 are your rubric). Invoke **`go-analytics`** and **`flink-infra`** so you can check the design against
 what Flink actually provides (the real Pub/Sub / GCS / BigQuery / helm-chart shapes, the mandatory BQ
-subscription, dead-letters). Read only the reference a judgment needs.
+subscription, dead-letters). Read only the reference a judgment needs — **default to the
+`skills/architecture/references/*` one-pagers**; open a deep pattern file only when a specific
+finding turns on it. Don't read the whole ~700 KB architecture tree.
 
 ## The review axes (in priority order)
 

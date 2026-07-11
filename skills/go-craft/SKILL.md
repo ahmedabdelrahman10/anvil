@@ -54,6 +54,31 @@ judgment the linter can't encode. When rules tension, **clarity wins.**
   narrative (entry point first, helpers below). If a function needs a comment to explain its
   sections, it's several functions.
 
+## Comments — the code is the comment
+
+**Default to none.** Clear names, small functions, and flat control flow are how you explain
+code — not prose beside it. anvil's floor is *minimal comments*; a diff that reads as
+self-explanatory Go is the goal, not one narrated line by line.
+
+- **Never restate the code.** `// increment i`, `// loop over rules`, `// return the result`
+  add nothing — delete them. If a line needs a comment to say *what* it does, rename or extract
+  until it doesn't.
+- **No structural narration.** No `// --- validation ---` / `// Step 1:` section banners
+  (that's the "several functions" smell), no header-block comments, no `// end of function`.
+- **No commented-out code** (git has the history) and **no `// TODO`** for something you should
+  just do now.
+- **Comment only a non-obvious *why* the code cannot carry** — a subtle invariant, a deliberate
+  workaround and the reason for it, a footgun a maintainer will otherwise re-introduce, an
+  ordering/concurrency assumption the compiler can't express. Put the *why*; never the *what*.
+- **Exported doc comments: only where they earn it.** Idiomatic Go and some host linters (revive
+  `exported`, `golint`) want a name-leading doc comment on exported identifiers — write those,
+  terse, **when the host lint requires it or the contract isn't obvious from the signature**. A
+  doc comment that just re-says the signature (`// GetUser gets a user.`) is noise; drop it.
+  Missing doc comments are not a defect anvil flags — redundant ones are.
+- **Schema docs are the exception, and they're not code narration.** Proto / OpenAPI /
+  analytics-event field descriptions are the API's own contract (they become the column/field
+  docs consumers read) — keep those accurate (see `go-docs`, `go-api`, `go-analytics`).
+
 ## Errors — explicit, wrapped, handled once
 
 - Wrap with `%w` (not `%v`) and add context, so callers can `errors.Is`/`errors.As`:
@@ -127,6 +152,7 @@ something else; if you must deviate, say why. Details: `github.com/goflink/go` (
 | "I'll just nest another if" | A staircase hides the happy path. Guard-clause the edge and return; keep the main line at the left margin. |
 | "One global cache is harmless" | Unguarded package-level mutable state is a race waiting to happen. Guard it or inject it. |
 | "While I'm here I'll refactor this too" | A drive-by refactor inside a fix pollutes the diff and the review. Keep the change focused. |
+| "A comment will make this clearer" | A comment that explains *what* the code does is a rename or an extraction you skipped. Fix the code; comment only a non-obvious *why*. |
 
 ## Red flags (do not ship)
 
@@ -134,7 +160,8 @@ Premature interfaces · implementation-side interface declarations · SDK types 
 ports · format-string logging · unguarded global mutable state · `utils`/`common`/`helpers`
 packages · fat handlers doing validation+logic+I/O · refactoring drive-bys inside a fix ·
 `SELECT *` / N+1 / unparameterized queries · storing a `ctx` in a struct · commenting out a
-linter instead of fixing it.
+linter instead of fixing it · comments that restate the code · section-banner/narration
+comments · commented-out code · redundant doc comments that echo the signature.
 
 ## Verification
 
@@ -145,3 +172,4 @@ linter instead of fixing it.
 - [ ] `ctx` is the first parameter, never stored; logging is structured with typed attributes.
 - [ ] No unguarded global mutable state; every goroutine has a known exit; `-race` clean.
 - [ ] Hot paths: bounded input, sensible preallocation, no `SELECT *`/N+1, measured before tuned.
+- [ ] Comments are minimal: none that restate code, no narration/banners, no commented-out code; a comment exists only for a non-obvious *why*.
