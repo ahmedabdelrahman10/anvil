@@ -77,7 +77,7 @@ self-explanatory Go is the goal, not one narrated line by line.
   Missing doc comments are not a defect anvil flags — redundant ones are.
 - **Schema docs are the exception, and they're not code narration.** Proto / OpenAPI /
   analytics-event field descriptions are the API's own contract (they become the column/field
-  docs consumers read) — keep those accurate (see `go-docs`, `go-api`, `go-analytics`).
+  docs consumers read) — keep those accurate.
 
 ## Errors — explicit, wrapped, handled once
 
@@ -135,7 +135,7 @@ repo (each has its own `go.mod`): `go get github.com/goflink/go/<module>@latest`
 | Outbound HTTP + retry | `github.com/goflink/go/http` | `NewRetryableClient(opts…)` (wraps `hashicorp/go-retryablehttp`; `RetryMax`/wait/policy options) + JSON encoders, health |
 | Auth / Auth0 JWT | `github.com/goflink/go/auth`, `.../auth/auth0` | Auth0 validation middleware + `claims` extraction; `auth/locker` for locking — don't hand-roll JWT parsing |
 | Database (Postgres) | `github.com/goflink/go/db`, `.../db/postgres` | Postgres client + config |
-| Pub/Sub | `github.com/goflink/go/pubsub` | `NewClient(ctx, cfg)` + `Publisher` — publish analytics/domain events (see `go-analytics`) |
+| Pub/Sub | `github.com/goflink/go/pubsub` | `NewClient(ctx, cfg)` + `Publisher` — publish analytics/domain events |
 | Service bootstrap | `github.com/goflink/go/container` | runs the app with logger/tracer/profiler/health + wired deps; implement its `App` interface (`Name`/`Run`/`Close`) |
 | Test / BDD helpers | `github.com/goflink/go/test`, `.../test/cucumber` | shared godog/cucumber steps + conversion helpers (see `go-testing`) |
 

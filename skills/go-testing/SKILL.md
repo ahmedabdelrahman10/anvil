@@ -88,7 +88,7 @@ Mock only at a boundary that's slow, non-deterministic, or has side effects you 
 
 For any user-visible spec, drive the **running service** over its real transport and assert what a
 real caller sees — status code **and** body for HTTP, the response message for gRPC, the persisted
-effect for a write. This is the assertion the `anvil:verifier` re-runs against staging. Keep E2E to
+effect for a write. Keep E2E to
 the critical paths; each one must exercise request → handler → store → response, not a stubbed hop.
 
 ## BDD — honest steps
@@ -99,13 +99,6 @@ and Flink's shared `github.com/goflink/go/test` (incl. `test/cucumber`) for comm
 helpers rather than re-implementing them.
 Steps must exercise real behavior and assert real outcomes — a step that always passes is a fake
 spec. Keep scenarios deterministic (fixed clock). A user-visible spec should have a scenario.
-
-## Verify against the real thing
-
-Tests prove the code; a run against real dependencies proves the system. For a deployed change,
-port-forward the real (staging) service and drive a real request (see `scripts/verify-staging.sh`),
-assert each spec, and re-run the critical assertion — once-green-once-red is a FAIL. Report what you
-actually observed.
 
 ## Other tools
 

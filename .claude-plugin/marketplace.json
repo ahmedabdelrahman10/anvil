@@ -7,7 +7,7 @@
     {
       "name": "anvil",
       "source": "./",
-      "description": "A Go engineering loop — understand -> spec (one human approval) -> plan -> implement -> gate -> test -> review -> provision infra -> staging-verify+enforce -> learn. Machine-checkable Definition-of-Done gate, adversarial review, and Flink-aware skills (api, observability, analytics, infra, git, docs)."
+      "description": "A Go engineering loop — research (one human approval on the spec) -> architecture & design -> implement -> review, looping implement<->review until approved. Machine-checkable Definition-of-Done gate and adversarial review."
     }
   ]
 }

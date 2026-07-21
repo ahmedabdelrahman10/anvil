@@ -1,7 +1,0 @@
-interface:
-  display_name: "Anvil Ship"
-  short_description: "Ship Go changes through Anvil's gated workflow"
-  default_prompt: "Use @anvil:ship to take a Go task from spec approval through implementation, gate, review, and PR."
-  brand_color: "#3B82F6"
-policy:
-  allow_implicit_invocation: true
